@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第3回：作ってみて、復習する | NEXT AI LAB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0A0A; --bg-card: #161616; --bg-card-hover: #1E1E1E;
+      --border: rgba(255,107,53,0.2); --border-hover: rgba(255,107,53,0.55);
+      --orange: #FF6B35; --orange-glow: rgba(255,107,53,0.12); --orange-dim: rgba(255,107,53,0.5);
+      --text: #F0F0F0; --text-muted: #888; --text-dim: #666;
+      --success: #4ADE80; --success-light: #86EFAC; --error-light: #F87171;
+      --font-serif: 'Noto Serif JP', Georgia, serif;
+      --font-sans: 'Noto Sans JP', sans-serif;
+      --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font-sans); background: var(--bg); min-height: 100vh; color: var(--text); font-size: 16px; line-height: 1.7; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,107,53,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,107,53,0.035) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+    body::after { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 0 20px 80px; }
+    header { text-align: center; padding: 48px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+    .label-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--orange-glow); border: 1px solid var(--border); color: var(--orange); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; padding: 6px 16px; margin-bottom: 20px; text-transform: uppercase; }
+    .label-dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 6px var(--orange); animation: dotPulse 2s ease-in-out infinite; }
+    @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+    .lesson-label { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 900; line-height: 1.25; color: var(--text); margin-bottom: 12px; }
+    .header-sub { font-size: 14px; color: var(--text-muted); }
+    .section-title { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+    section { margin-bottom: 48px; }
+    .points-card { background: var(--bg-card); border: 1px solid #222; border-radius: 14px; padding: 24px 28px; }
+    .points-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .points-list li { font-size: 14.5px; color: rgba(240,240,240,0.8); padding-left: 20px; position: relative; line-height: 1.7; }
+    .points-list li::before { content: '—'; position: absolute; left: 0; color: var(--orange); }
+    .keywords-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .keyword-card { background: var(--bg-card); border: 1px solid #222; border-radius: 12px; padding: 16px 18px; }
+    .keyword-term { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--orange); margin-bottom: 6px; }
+    .keyword-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+    .quiz-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .progress-bar-wrap { flex: 1; height: 4px; background: rgba(255,107,53,0.14); border-radius: 100px; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--orange); box-shadow: 0 0 8px var(--orange); border-radius: 100px; transition: width 0.4s ease; width: 0%; }
+    .progress-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+    .quiz-item { background: var(--bg-card); border: 1px solid #222; border-radius: 14px; padding: 24px; margin-bottom: 16px; transition: border-color 0.2s, background 0.2s; }
+    .quiz-item.answered-correct { border-color: rgba(74,222,128,0.45); background: rgba(74,222,128,0.04); }
+    .quiz-item.answered-wrong { border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.03); }
+    .quiz-q-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .q-num { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--orange); background: var(--orange-glow); border: 1px solid var(--border); padding: 3px 10px; border-radius: 100px; }
+    .quiz-question { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.55; margin-bottom: 16px; }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-option { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border: 1px solid rgba(255,107,53,0.16); border-radius: 10px; background: rgba(255,107,53,0.03); cursor: pointer; transition: border-color 0.15s, background 0.15s; text-align: left; width: 100%; font-family: var(--font-sans); font-size: 14px; color: var(--text); line-height: 1.5; }
+    .quiz-option:hover:not(:disabled) { border-color: var(--orange-dim); background: var(--orange-glow); }
+    .quiz-option:disabled { cursor: default; }
+    .quiz-option.correct { border-color: rgba(74,222,128,0.7); background: rgba(74,222,128,0.10); color: var(--success-light); }
+    .quiz-option.wrong { border-color: rgba(248,113,113,0.55); background: rgba(248,113,113,0.08); color: var(--error-light); }
+    .quiz-option.show-correct { border-color: rgba(74,222,128,0.4); background: rgba(74,222,128,0.05); color: var(--success); }
+    .option-marker { flex-shrink: 0; width: 20px; height: 20px; border: 1.5px solid currentColor; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; font-weight: 600; margin-top: 1px; opacity: 0.7; }
+    .quiz-explanation { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 10px; border-left: 3px solid var(--orange); background: var(--orange-glow); font-size: 13.5px; line-height: 1.75; color: rgba(240,240,240,0.8); }
+    .quiz-explanation.visible { display: block; animation: fadeInDown 0.25s ease; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .explanation-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--orange); text-transform: uppercase; margin-bottom: 6px; display: block; }
+    .score-board { display: none; background: var(--bg-card); border: 1px solid var(--orange); border-radius: 14px; padding: 32px 24px; text-align: center; margin-top: 24px; box-shadow: 0 0 30px rgba(255,107,53,0.08), inset 0 0 20px rgba(255,107,53,0.03); }
+    .score-board.visible { display: block; animation: fadeInDown 0.3s ease; }
+    .score-number { font-family: var(--font-serif); font-size: 3.5rem; font-weight: 900; line-height: 1; color: var(--orange); text-shadow: 0 0 40px rgba(255,107,53,0.35); margin-bottom: 8px; }
+    .score-label { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+    .score-message { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 16px; }
+    .retry-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-sans); font-size: 14px; font-weight: 700; padding: 10px 22px; border-radius: 10px; cursor: pointer; margin-top: 20px; transition: border-color 0.2s, color 0.2s; }
+    .retry-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .prompt-card { background: #0F0F0F; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .prompt-card-header { background: var(--orange-glow); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 8px; }
+    .prompt-card-dots { display: flex; gap: 5px; }
+    .prompt-card-dots span { width: 10px; height: 10px; border-radius: 50%; }
+    .prompt-card-dots span:nth-child(1) { background: rgba(255,107,53,0.85); }
+    .prompt-card-dots span:nth-child(2) { background: rgba(255,107,53,0.5); }
+    .prompt-card-dots span:nth-child(3) { background: rgba(255,107,53,0.25); }
+    .prompt-card-title { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: var(--orange); margin-left: 4px; }
+    .prompt-body { padding: 20px; max-height: 360px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--orange) transparent; }
+    .prompt-body::-webkit-scrollbar { width: 4px; }
+    .prompt-body::-webkit-scrollbar-track { background: transparent; }
+    .prompt-body::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 4px; }
+    .prompt-body pre { font-family: var(--font-mono); font-size: 13.5px; line-height: 1.85; color: rgba(240,240,240,0.85); white-space: pre-wrap; word-break: break-word; }
+    .copy-btn-wrap { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .copy-btn { width: 100%; height: 52px; background: var(--orange); border: none; border-radius: 12px; color: #0A0A0A; font-family: var(--font-sans); font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s, transform 0.15s, box-shadow 0.2s; letter-spacing: 0.02em; }
+    .copy-btn:hover { background: #FF8255; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,107,53,0.35); }
+    .copy-btn:active { transform: translateY(0); }
+    .copy-btn.copied { background: var(--success); color: #0A0A0A; box-shadow: 0 6px 20px rgba(74,222,128,0.35); }
+    .ai-link-note { font-size: 13px; color: var(--text-dim); margin-bottom: 12px; }
+    .ai-links { display: flex; gap: 12px; }
+    .ai-link-btn { flex: 1; padding: 14px 10px; border-radius: 12px; text-decoration: none; text-align: center; font-family: var(--font-sans); font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: border-color 0.2s, background 0.2s, transform 0.15s; border: 1px solid var(--border); background: rgba(255,107,53,0.05); color: var(--orange); cursor: pointer; }
+    .ai-link-btn:hover { border-color: var(--orange); background: var(--orange-glow); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255,107,53,0.18); }
+    .ai-link-icon { width: 28px; height: 28px; }
+    .ai-link-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); font-weight: 400; }
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 32px; border-top: 1px solid var(--border); }
+    .nav-btn { display: inline-flex; align-items: center; gap: 7px; padding: 12px 20px; border-radius: 10px; font-family: var(--font-sans); font-size: 14px; font-weight: 700; text-decoration: none; border: 1px solid var(--border); color: var(--text-muted); background: transparent; transition: border-color 0.2s, color 0.2s, background 0.2s; cursor: pointer; }
+    .nav-btn:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-glow); }
+    .nav-btn-next { background: var(--orange); color: #0A0A0A; border-color: var(--orange); }
+    .nav-btn-next:hover { background: #FF8255; color: #0A0A0A; border-color: #FF8255; }
+    footer { text-align: center; padding-top: 40px; margin-top: 40px; border-top: 1px solid var(--border); }
+    .footer-logo { font-family: var(--font-mono); font-size: 14px; font-weight: 600; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 6px; }
+    .footer-copy { font-size: 12px; color: var(--text-dim); }
+    @media (max-width: 600px) { .keywords-grid { grid-template-columns: 1fr; } .ai-links { flex-direction: column; } .nav-bar { flex-direction: column; } .nav-btn, .nav-btn-next { width: 100%; justify-content: center; } }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="label-badge"><span class="label-dot"></span>NEXT AI LAB | EP03</div>
+      <div class="lesson-label">第 3 回 / 全 6 回</div>
+      <h1>作ってみて、復習する</h1>
+      <p class="header-sub">デモで確かめる ファイル形式とパス</p>
+    </header>
+
+    <section>
+      <div class="section-title">今回の重要ポイント</div>
+      <div class="points-card">
+        <ul class="points-list">
+          <li>「作って・確かめて・覚える」がClaude Codeの学び方</li>
+          <li>Excelを作ると <code style="font-family:var(--font-mono);color:var(--orange);">.xlsx</code> が生まれ、Webを作ると <code style="font-family:var(--font-mono);color:var(--orange);">.html</code> が生まれる</li>
+          <li>ファイルを作れば、パスは自動的に確定する（覚えなくていい）</li>
+          <li>樹形図とパスは、同じ場所を2通りで表現しているだけ</li>
+          <li>ファイルを作れば、パスもわかる</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">キーワード集</div>
+      <div class="keywords-grid">
+        <div class="keyword-card"><div class="keyword-term">report.xlsx</div><div class="keyword-desc">Excelファイルの例。Claude Codeが売上分析から生成。</div></div>
+        <div class="keyword-card"><div class="keyword-term">index.html</div><div class="keyword-desc">Webページのメインファイル名。慣習的にこの名前を使う。</div></div>
+        <div class="keyword-card"><div class="keyword-term">.xlsx</div><div class="keyword-desc">Excel形式の拡張子。グラフや複数シートも入る。</div></div>
+        <div class="keyword-card"><div class="keyword-term">.html</div><div class="keyword-desc">ブラウザで開くWebページの拡張子。デザインも1ファイルに。</div></div>
+        <div class="keyword-card"><div class="keyword-term">デモ</div><div class="keyword-desc">実際の操作を見せること。今回はExcelとWebを生成する様子を視聴。</div></div>
+        <div class="keyword-card"><div class="keyword-term">復習クイズ</div><div class="keyword-desc">樹形図を見て、パスがどこにあたるかを当てる練習問題。</div></div>
+      </div>
+    </section>
+
+    <section id="quizSection">
+      <div class="section-title">確認クイズ</div>
+      <div class="quiz-progress">
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+        <span class="progress-label" id="progressLabel">0 / 5 問</span>
+      </div>
+
+      <div class="quiz-item" id="q1">
+        <div class="quiz-q-meta"><span class="q-num">Q 1</span></div>
+        <div class="quiz-question">スライド「TODAY'S PLAN」で示された今回の3ステップとして正しいものはどれですか？</div>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="answer(1,0,false)"><span class="option-marker">A</span>インストール → ログイン → CLAUDE.mdを書く</button>
+          <button class="quiz-option" onclick="answer(1,1,true)"><span class="option-marker">B</span>Excelを作る → Webサイトを作る → 復習クイズ</button>
+          <button class="quiz-option" onclick="answer(1,2,false)"><span class="option-marker">C</span>動画を作る → 画像を作る → 音声を作る</button>
+          <button class="quiz-option" onclick="answer(1,3,false)"><span class="option-marker">D</span>GitHubに登録 → 共有 → 公開</button>
+        </div>
+        <div class="quiz-explanation" id="exp1"><span class="explanation-label">解説</span>スライドの3ステップは ①Excelファイルを作る（拡張子を確認）②Webサイトを作る（HTMLファイルを確認）③復習クイズ（パスを当てよう）。インストールやCLAUDE.mdは第4回のテーマです。</div>
+      </div>
+
+      <div class="quiz-item" id="q2">
+        <div class="quiz-q-meta"><span class="q-num">Q 2</span></div>
+        <div class="quiz-question">スライド「DEMO 01」で、Claude Codeが売上データを分析して作ったファイルの名前は何でしたか？</div>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="answer(2,0,false)"><span class="option-marker">A</span>sales.docx</button>
+          <button class="quiz-option" onclick="answer(2,1,true)"><span class="option-marker">B</span>report.xlsx</button>
+          <button class="quiz-option" onclick="answer(2,2,false)"><span class="option-marker">C</span>data.txt</button>
+          <button class="quiz-option" onclick="answer(2,3,false)"><span class="option-marker">D</span>graph.png</button>
+        </div>
+        <div class="quiz-explanation" id="exp2"><span class="explanation-label">解説</span>DEMO 01では「ファイル名は report.xlsx にして」と頼み、月別売上・カテゴリ比較・グラフ入りの report.xlsx が生成されました。保存先は <span style="font-family:var(--font-mono);color:var(--orange);">/Users/yamada/work/project_alpha/report.xlsx</span> です。</div>
+      </div>
+
+      <div class="quiz-item" id="q3">
+        <div class="quiz-q-meta"><span class="q-num">Q 3</span></div>
+        <div class="quiz-question">スライド「FILE CHECK 02」では、拡張子 <code style="font-family:var(--font-mono);color:var(--orange);">.html</code> をどう説明していましたか？</div>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="answer(3,0,false)"><span class="option-marker">A</span>音声を再生するファイル</button>
+          <button class="quiz-option" onclick="answer(3,1,false)"><span class="option-marker">B</span>表計算をするファイル</button>
+          <button class="quiz-option" onclick="answer(3,2,true)"><span class="option-marker">C</span>ブラウザで開くWebページ（デザインも1ファイルに入る）</button>
+          <button class="quiz-option" onclick="answer(3,3,false)"><span class="option-marker">D</span>印刷専用のファイル</button>
+        </div>
+        <div class="quiz-explanation" id="exp3"><span class="explanation-label">解説</span>スライドは「拡張子 .html ＝ ブラウザで開くWebページ」「グラフ・デザインもすべて1ファイルに」と説明。DEMO 02では「ファイル名は index.html にして」と頼み、コーポレートサイトが index.html として生成されました。</div>
+      </div>
+
+      <div class="quiz-item" id="q4">
+        <div class="quiz-q-meta"><span class="q-num">Q 4</span></div>
+        <div class="quiz-question">復習クイズで、<code style="font-family:var(--font-mono);color:var(--orange);">/Users/yamada/work/project_alpha/report.xlsx</code> は樹形図のどこにありましたか？</div>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="answer(4,0,false)"><span class="option-marker">A</span>Applications フォルダの中</button>
+          <button class="quiz-option" onclick="answer(4,1,false)"><span class="option-marker">B</span>Users → yamada → Desktop の中</button>
+          <button class="quiz-option" onclick="answer(4,2,true)"><span class="option-marker">C</span>Users → yamada → work → project_alpha の中</button>
+          <button class="quiz-option" onclick="answer(4,3,false)"><span class="option-marker">D</span>System フォルダの中</button>
+        </div>
+        <div class="quiz-explanation" id="exp4"><span class="explanation-label">解説</span>パスは住所と同じく左から順にたどります。<span style="font-family:var(--font-mono);color:var(--orange);">/Users/ → yamada/ → work/ → project_alpha/ → report.xlsx</span>。スライドの正解でも、この階層がオレンジでハイライトされていました。index.html も同じ project_alpha フォルダの中にあります。</div>
+      </div>
+
+      <div class="quiz-item" id="q5">
+        <div class="quiz-q-meta"><span class="q-num">Q 5</span></div>
+        <div class="quiz-question">スライド「OUTRO」で、Claude Codeの学び方として示された言葉はどれですか？</div>
+        <div class="quiz-options">
+          <button class="quiz-option" onclick="answer(5,0,false)"><span class="option-marker">A</span>「読んで・暗記して・テストする」</button>
+          <button class="quiz-option" onclick="answer(5,1,true)"><span class="option-marker">B</span>「作って・確かめて・覚える」</button>
+          <button class="quiz-option" onclick="answer(5,2,false)"><span class="option-marker">C</span>「調べて・比較して・選ぶ」</button>
+          <button class="quiz-option" onclick="answer(5,3,false)"><span class="option-marker">D</span>「聞いて・真似して・繰り返す」</button>
+        </div>
+        <div class="quiz-explanation" id="exp5"><span class="explanation-label">解説</span>スライドのまとめは「ファイルを作れば、パスもわかる。作って・確かめて・覚える。これがClaude Codeの学び方です」。パスは暗記するものではなく、実際にファイルを作れば自動的に確定する——これが第3回の核心メッセージです。</div>
+      </div>
+
+      <div class="score-board" id="scoreBoard">
+        <div class="score-number" id="scoreNum">0 / 5</div>
+        <div class="score-label">正解</div>
+        <div class="score-message" id="scoreMsg"></div>
+        <button class="retry-btn" onclick="retryQuiz()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+          もう一度チャレンジ
+        </button>
+      </div>
+    </section>
+
+    <section id="promptSection">
+      <div class="section-title">確認プロンプト</div>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.75;">このプロンプトは <strong style="color:var(--orange);font-weight:700;">講師ひにちの学習哲学</strong>「作って・確かめて・覚える」を冒頭に据えてあります。第3回は手を動かして体得する回なので、知識の暗記ではなく実体験ベースで確認する進め方になっています。コピーして ChatGPT または Gemini に貼り付けてください。</p>
+      <div class="prompt-card">
+        <div class="prompt-card-header">
+          <div class="prompt-card-dots"><span></span><span></span><span></span></div>
+          <span class="prompt-card-title">第3回 確認プロンプト</span>
+        </div>
+        <div class="prompt-body">
+          <pre id="promptText">あなたはAI学習の優秀なメンターです。これから私の理解度チェックを手伝ってください。
+
+■ 私の学習哲学（この考え方を前提に進めてください）
+私はNEXT AI LABで講師ひにちの「Claude Code完全解説シリーズ」を学んでいます。第3回で講師が伝えた言葉「作って・確かめて・覚える。これがClaude Codeの学び方です」を、私の学びの軸にしています。
+1. パスは「暗記するもの」ではない。ファイルを実際に作れば、パスは自動的に確定する——だから手を動かす体験を重視する。
+2. Excelを作れば .xlsx が生まれ、Webを作れば .html が生まれる。「作る → 確かめる → 覚える」の順で、出力されたファイルを自分の目で確かめて納得したい。
+3. 樹形図とパスは「同じ場所の2通りの表現」。知識として暗記するより、具体例で対応関係を腹落ちさせたい。
+
+■ 今回（第3回：作ってみて、復習する）で学んだこと
+・Excelを作ると report.xlsx（.xlsx）が、Webを作ると index.html（.html）が生まれる
+・ファイルを作れば、パスは自動的に確定する（覚えなくていい）
+・樹形図とパスは同じ場所を2通りで表現しているだけ
+・「作って・確かめて・覚える」がClaude Codeの学び方
+
+■ お願いしたいこと
+上の私の学習哲学を前提に、今回の学習内容について私の理解度を1問ずつ確認してください。とくに「ファイルを作るとパスがどう決まるか」を、具体的な例で私に説明させる形式が理想です。私が答えたら正誤を判定し、私の哲学に沿った補足を一言加えてください。全部で3〜5問を目安に、まず1問目からお願いします。</pre>
+        </div>
+        <div class="copy-btn-wrap">
+          <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">
+            <svg id="copyIconSvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <span id="copyLabel">プロンプトをコピーする</span>
+          </button>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <p class="ai-link-note">コピー後、好きなAIに貼り付けてください</p>
+        <div class="ai-links">
+          <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="ai-link-btn">
+            <svg class="ai-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.032.067L9.999 19.86a4.496 4.496 0 0 1-6.399-1.556zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.898zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08-4.778 2.758a.795.795 0 0 0-.392.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="currentColor"/></svg>
+            <span>ChatGPT で確認する</span>
+            <span class="ai-link-label">chatgpt.com</span>
+          </a>
+          <a href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer" class="ai-link-btn">
+            <svg class="ai-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 24A14.304 14.304 0 0 0 0 12 14.304 14.304 0 0 0 12 0a14.305 14.305 0 0 0 12 12 14.305 14.305 0 0 0-12 12" fill="currentColor"/></svg>
+            <span>Gemini で確認する</span>
+            <span class="ai-link-label">gemini.google.com</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="nav-bar">
+      <a href="p2.html" class="nav-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>前の回へ（第2回）</a>
+      <a href="index.html" class="nav-btn">一覧に戻る</a>
+      <a href="p4.html" class="nav-btn nav-btn-next">次の回へ（第4回）<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></a>
+    </div>
+
+    <footer>
+      <div class="footer-logo">NEXT AI LAB</div>
+      <div class="footer-copy">&copy; 2026 NEXT AI LAB &mdash; Claude Code 完全解説シリーズ</div>
+    </footer>
+  </div>
+
+  <script>
+    var answered = [false,false,false,false,false];
+    var correctCount = 0;
+
+    function answer(qNum, optIndex, isCorrect) {
+      if (answered[qNum-1]) return;
+      answered[qNum-1] = true;
+      if (isCorrect) correctCount++;
+      var item = document.getElementById('q'+qNum);
+      var options = item.querySelectorAll('.quiz-option');
+      var exp = document.getElementById('exp'+qNum);
+      options.forEach(function(btn,i){
+        btn.disabled = true;
+        if (i===optIndex && isCorrect) btn.classList.add('correct');
+        else if (i===optIndex && !isCorrect) btn.classList.add('wrong');
+      });
+      if (!isCorrect) {
+        options.forEach(function(btn){
+          if ((btn.getAttribute('onclick')||'').indexOf(',true)')!==-1) btn.classList.add('show-correct');
+        });
+      }
+      item.classList.add(isCorrect?'answered-correct':'answered-wrong');
+      exp.classList.add('visible');
+      var done = answered.filter(function(v){return v;}).length;
+      document.getElementById('progressBar').style.width=(done/5*100)+'%';
+      document.getElementById('progressLabel').textContent=done+' / 5 問';
+      if (done===5) showScore();
+    }
+
+    function showScore(){
+      var board=document.getElementById('scoreBoard');
+      board.classList.add('visible');
+      document.getElementById('scoreNum').textContent=correctCount+' / 5';
+      var msg='';
+      if(correctCount===5) msg='満点です！第3回の内容を完全に理解できています。';
+      else if(correctCount>=4) msg='ほぼ完璧です。間違えた問いを解説で振り返りましょう。';
+      else if(correctCount>=3) msg='半分以上正解です。解説を読み返して理解を深めましょう。';
+      else msg='解説を読んで、もう一度チャレンジしてみましょう。';
+      document.getElementById('scoreMsg').textContent=msg;
+      setTimeout(function(){board.scrollIntoView({behavior:'smooth',block:'center'});},200);
+    }
+
+    function retryQuiz(){
+      answered=[false,false,false,false,false]; correctCount=0;
+      for(var i=1;i<=5;i++){
+        var item=document.getElementById('q'+i);
+        item.classList.remove('answered-correct','answered-wrong');
+        item.querySelectorAll('.quiz-option').forEach(function(btn){
+          btn.disabled=false; btn.classList.remove('correct','wrong','show-correct');
+        });
+        document.getElementById('exp'+i).classList.remove('visible');
+      }
+      document.getElementById('progressBar').style.width='0%';
+      document.getElementById('progressLabel').textContent='0 / 5 問';
+      document.getElementById('scoreBoard').classList.remove('visible');
+      document.getElementById('quizSection').scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function copyPrompt(){
+      var text=document.getElementById('promptText').innerText;
+      var btn=document.getElementById('copyBtn');
+      var label=document.getElementById('copyLabel');
+      var succeed=function(){
+        btn.classList.add('copied');
+        label.textContent='コピーしました！';
+        setTimeout(function(){btn.classList.remove('copied');label.textContent='プロンプトをコピーする';},3000);
+      };
+      if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(text).then(succeed).catch(function(){fallbackCopy(text,succeed);});
+      } else { fallbackCopy(text,succeed); }
+    }
+
+    function fallbackCopy(text,cb){
+      var ta=document.createElement('textarea');
+      ta.value=text; ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try{document.execCommand('copy');cb();}catch(e){}
+      document.body.removeChild(ta);
+    }
+  </script>
+</body>
+</html>

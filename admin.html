@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メンバー管理 | NEXT AI LAB</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { max-width: 640px; margin: 0 auto; padding: 3rem 1.5rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .card h2 { font-size: .8rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .05em; }
+    .email-row { display: flex; align-items: center; justify-content: space-between; padding: .625rem 0; border-bottom: 1px solid var(--border); }
+    .email-row:last-child { border-bottom: none; }
+    .email-text { font-size: .9rem; }
+    .del-btn { background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: .25rem .75rem; border-radius: 6px; font-size: .8rem; cursor: pointer; transition: all .2s; }
+    .del-btn:hover { border-color: #ef4444; color: #ef4444; }
+    .add-row { display: flex; gap: .75rem; }
+    .add-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: .75rem 1rem; border-radius: 8px; font-size: .9rem; }
+    .add-row input:focus { outline: none; border-color: var(--accent); }
+    .add-btn { background: var(--accent); color: #fff; border: none; padding: .75rem 1.25rem; border-radius: 8px; font-size: .9rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity .2s; }
+    .add-btn:hover:not(:disabled) { opacity: .85; }
+    .add-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .msg { padding: .75rem 1rem; border-radius: 8px; font-size: .875rem; margin-top: 1rem; display: none; }
+    .msg.ok  { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.35); color: #10b981; }
+    .msg.err { background: rgba(239,68,68,.12);  border: 1px solid rgba(239,68,68,.35);  color: #ef4444; }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: .875rem; color: var(--text-secondary); text-decoration: none; }
+    .back-link:hover { color: var(--accent); }
+    .empty { color: var(--text-secondary); font-size: .875rem; padding: .5rem 0; }
+    .badge { background: var(--accent); color: #fff; border-radius: 999px; font-size: .7rem; padding: .15rem .5rem; margin-left: .5rem; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+    <a href="/" class="back-link" style="margin-bottom:0;">← ホームに戻る</a>
+    <a href="/api/logout" style="font-size:.8rem; color:var(--text-secondary); text-decoration:none; padding:.25rem .75rem; border:1px solid transparent; border-radius:6px; transition:all .2s;" onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='transparent'">ログアウト</a>
+  </div>
+  <h1>👤 メンバー管理</h1>
+
+  <div class="card">
+    <h2>許可メールアドレス <span class="badge" id="count">0</span></h2>
+    <div id="emailList"><p class="empty">読み込み中…</p></div>
+  </div>
+
+  <div class="card">
+    <h2>新規メンバーを追加</h2>
+    <div class="add-row">
+      <input type="email" id="newEmail" placeholder="member@example.com" autocomplete="off">
+      <button class="add-btn" id="addBtn" disabled>追加</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+
+<script>
+  const emailList = document.getElementById('emailList');
+  const countBadge = document.getElementById('count');
+  const newEmailInput = document.getElementById('newEmail');
+  const addBtn = document.getElementById('addBtn');
+  const msg = document.getElementById('msg');
+
+  function showMsg(text, type) {
+    msg.textContent = text;
+    msg.className = 'msg ' + type;
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  }
+
+  async function loadEmails() {
+    try {
+      const res = await fetch('/api/admin/members');
+      if (res.status === 401 || res.status === 403) { window.location.href = '/'; return; }
+      const data = await res.json();
+      renderList(data.emails || []);
+    } catch {
+      emailList.innerHTML = '<p class="empty" style="color:#ef4444">読み込みエラー</p>';
+    }
+  }
+
+  function renderList(emails) {
+    countBadge.textContent = emails.length;
+    if (emails.length === 0) {
+      emailList.innerHTML = '<p class="empty">メンバーがいません</p>';
+      return;
+    }
+    emailList.innerHTML = emails.map(email => `
+      <div class="email-row" data-email="${email}">
+        <span class="email-text">${email}</span>
+        <button class="del-btn" onclick="removeEmail('${email}')">削除</button>
+      </div>
+    `).join('');
+  }
+
+  newEmailInput.addEventListener('input', () => {
+    addBtn.disabled = !newEmailInput.value.includes('@');
+  });
+
+  addBtn.addEventListener('click', async () => {
+    const email = newEmailInput.value.trim();
+    if (!email) return;
+    addBtn.disabled = true;
+    addBtn.textContent = '追加中…';
+    try {
+      const res = await fetch('/api/admin/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        renderList(data.emails);
+        newEmailInput.value = '';
+        showMsg(`${email} を追加しました`, 'ok');
+      } else {
+        showMsg(data.error || '追加に失敗しました', 'err');
+      }
+    } catch {
+      showMsg('ネットワークエラー', 'err');
+    }
+    addBtn.disabled = false;
+    addBtn.textContent = '追加';
+  });
+
+  async function removeEmail(email) {
+    if (!confirm(`${email} を削除してよいですか？`)) return;
+    try {
+      const res = await fetch('/api/admin/members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        renderList(data.emails);
+        showMsg(`${email} を削除しました`, 'ok');
+      } else {
+        showMsg(data.error || '削除に失敗しました', 'err');
+      }
+    } catch {
+      showMsg('ネットワークエラー', 'err');
+    }
+  }
+
+  newEmailInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !addBtn.disabled) addBtn.click(); });
+
+  loadEmails();
+</script>
+</body>
+</html>
