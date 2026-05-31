@@ -1,18 +1,18 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #0A0A0A; --bg-card: #161616; --bg-card-hover: #1E1E1E;
-  --border: rgba(255,107,53,0.2); --border-hover: rgba(255,107,53,0.55);
-  --orange: #FF6B35; --orange-light: #FF8255; --orange-glow: rgba(255,107,53,0.12);
-  --text: #F0F0F0; --text-muted: #888; --text-dim: #666;
-  --success: #4ADE80;
+  --bg: transparent; --bg-card: rgba(255,255,255,0.35); --bg-card-hover: rgba(255,255,255,0.50);
+  --border: rgba(91,155,213,0.25); --border-hover: rgba(91,155,213,0.55);
+  --orange: #2B5F8D; --orange-light: #4A80B0; --orange-glow: rgba(91,155,213,0.12);
+  --text: #1a202c; --text-muted: #4a5568; --text-dim: #718096;
+  --success: #059669;
   --font-serif: 'Noto Serif JP', Georgia, serif;
   --font-sans: 'Noto Sans JP', sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 html { scroll-behavior: smooth; }
-body { font-family: var(--font-sans); background: var(--bg); min-height: 100vh; color: var(--text); font-size: 16px; line-height: 1.7; overflow-x: hidden; }
-body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,107,53,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,107,53,0.035) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
-body::after { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 0; }
+body { font-family: var(--font-sans); background: linear-gradient(180deg, #5B9BD5 0%, #A8D8F0 100%); background-attachment: fixed; min-height: 100vh; color: var(--text); font-size: 16px; line-height: 1.7; overflow-x: hidden; }
+body::before { display: none; }
+body::after { display: none; }
 .wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
 header { text-align: center; padding: 60px 0 48px; position: relative; }
 .logout-link { position: absolute; top: 0; right: 0; font-family: var(--font-sans); font-size: 12px; color: var(--text-dim); text-decoration: none; padding: 6px 12px; border: 1px solid transparent; border-radius: 6px; transition: color 0.2s, border-color 0.2s; }
